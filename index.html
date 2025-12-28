@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synthwave Fireplace</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: linear-gradient(180deg, #0a0015 0%, #1a0033 50%, #2d0052 100%);
+            font-family: 'Courier New', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        #fireplace-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Zoomed-in fireplace structure */
+        #fireplace-structure {
+            position: relative;
+            width: 95vw;
+            max-width: 1400px;
+            height: 85vh;
+            max-height: 900px;
+        }
+
+        /* Mantel */
+        #mantel {
+            position: absolute;
+            top: 0;
+            left: -2%;
+            width: 104%;
+            height: 11%;
+            background: linear-gradient(180deg, #1a0033 0%, #2d0052 50%, #1a0033 100%);
+            border: 3px solid #ff00ff;
+            box-shadow:
+                0 0 25px #ff00ff,
+                inset 0 -8px 25px rgba(0, 255, 255, 0.25);
+            border-radius: 4px;
+            z-index: 5;
+        }
+
+        #mantel::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: linear-gradient(90deg, #ff00ff 0%, #00ffff 50%, #ff00ff 100%);
+            box-shadow: 0 0 15px #ff00ff;
+        }
+
+        /* Side pillars */
+        .pillar {
+            position: absolute;
+            top: 11%;
+            width: 12%;
+            height: 74%;
+            background: linear-gradient(90deg, #1a0033 0%, #2d0052 50%, #1a0033 100%);
+            border: 2px solid #ff00ff;
+            box-shadow:
+                0 0 20px #ff00ff,
+                inset 0 0 25px rgba(255, 0, 255, 0.25);
+            z-index: 2;
+        }
+
+        #left-pillar  { left: -1%; }
+        #right-pillar { right: -1%; }
+
+        /* Firebox */
+        #firebox {
+            position: absolute;
+            top: 16%;
+            left: 15%;
+            width: 70%;
+            height: 70%;
+            background: linear-gradient(180deg, rgba(0,0,0,0.97) 0%, rgba(8,0,18,1) 100%);
+            border: 4px solid #00ffff;
+            box-shadow:
+                0 0 40px #00ffff,
+                inset 0 0 90px rgba(255, 0, 255, 0.25),
+                inset 0 0 45px rgba(0, 255, 255, 0.2);
+            border-radius: 12px 12px 0 0;
+            overflow: hidden;
+        }
+
+        /* Grid on back wall */
+        #firebox::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 40px,
+                    rgba(255, 0, 255, 0.08) 40px,
+                    rgba(255, 0, 255, 0.08) 42px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 40px,
+                    rgba(0, 255, 255, 0.08) 40px,
+                    rgba(0, 255, 255, 0.08) 42px
+                );
+            opacity: 0.7;
+            z-index: 0;
+        }
+
+        #canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Hearth */
+        #hearth {
+            position: absolute;
+            bottom: 0;
+            left: 8%;
+            width: 84%;
+            height: 9%;
+            background: linear-gradient(180deg, #2d0052 0%, #1a0033 100%);
+            border: 3px solid #ff00ff;
+            box-shadow:
+                0 0 25px #ff00ff,
+                inset 0 6px 20px rgba(0, 255, 255, 0.3);
+            border-radius: 0 0 10px 10px;
+            z-index: 3;
+        }
+
+        /* Clean neon logs */
+        #logs {
+            position: absolute;
+            bottom: 9%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 14%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 10px;
+            z-index: 2;
+        }
+
+        .log {
+            width: 30%;
+            height: 65%;
+            background: radial-gradient(circle at 20% 30%, #4a0080 0%, #1a0033 45%, #05000b 100%);
+            border-radius: 40px;
+            border: 2px solid #ff00ff;
+            box-shadow:
+                0 0 15px #ff00ff,
+                inset 0 0 12px rgba(255, 0, 255, 0.7);
+        }
+
+        .log:nth-child(1) {
+            transform: rotate(-6deg) translateY(6px);
+        }
+        .log:nth-child(2) {
+            border-color: #00ffff;
+            box-shadow:
+                0 0 15px #00ffff,
+                inset 0 0 12px rgba(0, 255, 255, 0.7);
+            transform: translateY(-10px);
+            height: 80%;
+        }
+        .log:nth-child(3) {
+            transform: rotate(6deg) translateY(6px);
+        }
+
+        #controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 0 12px #00ffff;
+            transition: all 0.25s;
+        }
+
+        button:hover {
+            background: #00ffff;
+            color: #000;
+            box-shadow: 0 0 25px #00ffff;
+        }
+
+        /* Mobile tweaks */
+        @media (max-width: 768px) {
+            #fireplace-structure {
+                width: 98vw;
+                height: 90vh;
+            }
+            #firebox {
+                left: 10%;
+                width: 80%;
+            }
+            #hearth {
+                left: 6%;
+                width: 88%;
+            }
+        }
+
+        @media (orientation: portrait) {
+            #firebox {
+                height: 60%;
+                top: 20%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="fireplace-container">
+        <div id="fireplace-structure">
+            <div id="mantel"></div>
+            <div class="pillar" id="left-pillar"></div>
+            <div class="pillar" id="right-pillar"></div>
+
+            <div id="firebox">
+                <canvas id="canvas"></canvas>
+                <div id="logs">
+                    <div class="log"></div>
+                    <div class="log"></div>
+                    <div class="log"></div>
+                </div>
+            </div>
+
+            <div id="hearth"></div>
+        </div>
+
+        <div id="controls">
+            <button id="toggleSound">Sound: ON</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const toggleSoundBtn = document.getElementById('toggleSound');
+
+        let particles = [];
+        let soundEnabled = true;
+        let audioContext;
+        let whiteNoiseNode;
+        let crackleInterval;
+
+        // Resize canvas to match element size
+        function resizeCanvas() {
+            canvas.width  = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // ==== PARTICLES (original long-trail style) ====
+
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 15 + 5;
+                this.speedY = Math.random() * -3 - 2;
+                this.speedX = (Math.random() - 0.5) * 2;
+                this.life = 1;
+                this.decay = Math.random() * 0.01 + 0.005;
+                this.hue = Math.random() * 60 + 280; // synthwave purple→cyan range
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.life -= this.decay;
+                this.size *= 0.98;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.life;
+
+                // Outer glow gradient
+                const gradient = ctx.createRadialGradient(
+                    this.x, this.y, 0,
+                    this.x, this.y, this.size
+                );
+                gradient.addColorStop(0,  `hsla(${this.hue}, 100%, 70%, 1)`);
+                gradient.addColorStop(0.5,`hsla(${this.hue + 20}, 100%, 50%, 0.8)`);
+                gradient.addColorStop(1,  `hsla(${this.hue + 40}, 100%, 30%, 0)`);
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Bright inner core
+                ctx.fillStyle = `hsla(${this.hue}, 100%, 90%, ${this.life})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 0.3, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            }
+
+            isDead() {
+                return this.life <= 0;
+            }
+        }
+
+        function createParticles() {
+            const baseY = canvas.height * 0.78;
+            const numParticles = 6;
+
+            for (let i = 0; i < numParticles; i++) {
+                const x = canvas.width * 0.25 + Math.random() * canvas.width * 0.5;
+                const y = baseY + Math.random() * 20;
+                particles.push(new Particle(x, y));
+            }
+        }
+
+        function animate() {
+            // Fading trail background for long trails
+            ctx.fillStyle = 'rgba(5, 0, 15, 0.15)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            createParticles();
+
+            particles = particles.filter(p => {
+                p.update();
+                p.draw();
+                return !p.isDead();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        // ==== AUDIO: white noise + crackles ====
+
+        function initAudio() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+            const bufferSize = 4096;
+            whiteNoiseNode = audioContext.createScriptProcessor(bufferSize, 1, 1);
+
+            whiteNoiseNode.onaudioprocess = function (e) {
+                const output = e.outputBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    output[i] = (Math.random() * 2 - 1) * 0.1; // low white noise
+                }
+            };
+
+            // Lowpass filter to make it more "fire" than pure hiss
+            const filter = audioContext.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = 800;
+
+            const gainNode = audioContext.createGain();
+            gainNode.gain.value = 0.3;
+
+            whiteNoiseNode.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            // Start white noise immediately
+            whiteNoiseNode.connect(filter);
+
+            // Crackle pops
+            startCrackles();
+        }
+
+        function playCrackle() {
+            if (!soundEnabled || !audioContext) return;
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.type = 'square';
+            oscillator.frequency.value = Math.random() * 200 + 100;
+
+            gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(
+                0.01,
+                audioContext.currentTime + 0.1
+            );
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+
+        function startCrackles() {
+            crackleInterval = setInterval(() => {
+                if (soundEnabled && Math.random() > 0.7) {
+                    playCrackle();
+                }
+            }, 900);
+        }
+
+        // Toggle sound on/off
+        toggleSoundBtn.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            toggleSoundBtn.textContent = `Sound: ${soundEnabled ? 'ON' : 'OFF'}`;
+
+            if (!audioContext && soundEnabled) {
+                initAudio();
+                return;
+            }
+
+            if (audioContext) {
+                if (soundEnabled && audioContext.state === 'suspended') {
+                    audioContext.resume();
+                } else if (!soundEnabled && audioContext.state === 'running') {
+                    audioContext.suspend();
+                }
+            }
+        });
+
+        // Initialize audio on first click (required by browsers)
+        document.addEventListener('click', () => {
+            if (!audioContext && soundEnabled) {
+                initAudio();
+            }
+        }, { once: true });
+
+        // Start animation
+        animate();
+    </script>
+</body>
+</html>
