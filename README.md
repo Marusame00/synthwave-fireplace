@@ -28,6 +28,11 @@ cd <your-repo>
 2. Open in a browser
 You can simply open the index.html file directly:
 
+Visit the live app: 
+```text
+https://marusame00.github.io/synthwave-fireplace/
+```
+
 Double‑click index.html, or
 Right‑click → “Open With” → your browser
 For best results and to avoid any local file / audio restrictions, you can also serve it with a simple dev server, e.g.:
